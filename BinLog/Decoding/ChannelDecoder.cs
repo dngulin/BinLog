@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using BinLog.Exceptions;
 
 namespace BinLog.Decoding {
   public unsafe class ChannelDecoder<TChannelEnum, TMessageEnum> : IChannelDecoder
@@ -12,10 +13,10 @@ namespace BinLog.Decoding {
 
     public ChannelDecoder(TChannelEnum channel, ArgumentDecoder argDecoder) {
       if (sizeof(TChannelEnum) != sizeof(ushort))
-        throw null;
+        throw new BinLogException($"Size of {nameof(TChannelEnum)} should be {sizeof(ushort)}");
 
       if (sizeof(TMessageEnum) != sizeof(ushort))
-        throw null;
+        throw new BinLogException($"Size of {nameof(TMessageEnum)} should be {sizeof(ushort)}");
 
       _argDecoder = argDecoder;
 
@@ -26,7 +27,9 @@ namespace BinLog.Decoding {
     public ushort ChannelId { get; }
     public string ChannelName { get; }
 
-    public int DecodeArgument(ReadOnlySpan<byte> span, out object result) => _argDecoder.Decode(span, out result);
+    public int DecodeArgument(ReadOnlySpan<byte> span, out object result) {
+      return _argDecoder.Decode(ChannelId, span, out result);
+    }
 
     public string DecodeMessage(ushort msgId) {
       var value = *(TMessageEnum*) &msgId;

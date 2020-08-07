@@ -1,12 +1,16 @@
 using System;
+using BinLog.Exceptions;
 using BinLog.Primitives;
 using BinLog.Serialization;
 
 namespace BinLog.Decoding {
   public class ArgumentDecoder {
-    public int Decode(ReadOnlySpan<byte> source, out object result) {
-      var typeLength = source.Read(out ushort type);
-      var dataLength = DecodeImpl(type, source.Slice(typeLength), out result) ?? throw null;
+    public int Decode(ushort channelId, ReadOnlySpan<byte> source, out object result) {
+      var typeLength = source.Read(out ushort typeId);
+      var dataLength =
+        DecodeImpl(typeId, source.Slice(typeLength), out result)
+        ?? throw new BinLogDecodingException($"Failed to decode argument of type {typeId} in channel {channelId}");
+
       return typeLength + dataLength;
     }
 

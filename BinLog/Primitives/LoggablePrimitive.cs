@@ -1,4 +1,5 @@
 using System;
+using BinLog.Exceptions;
 using BinLog.Serialization;
 
 namespace BinLog.Primitives {
@@ -58,7 +59,7 @@ namespace BinLog.Primitives {
           return bytesWritten + dst.Slice(bytesWritten).Write(value);
       }
 
-      throw null;
+      throw new BinLogSerializationException($"Failed to serialize {nameof(LoggablePrimitive<T>)}");
     }
   }
 }

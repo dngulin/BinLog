@@ -1,4 +1,5 @@
 using System;
+using BinLog.Exceptions;
 using BinLog.Serialization;
 
 namespace BinLog.Internal {
@@ -20,7 +21,6 @@ namespace BinLog.Internal {
     }
 
     public EntryHeader(ReadOnlySpan<byte> src) {
-
       var bytesRead = src.Read(out EntryLength);
       bytesRead += src.Slice(bytesRead).Read(out ChannelId);
       bytesRead += src.Slice(bytesRead).Read(out MessageId);
@@ -28,7 +28,7 @@ namespace BinLog.Internal {
       bytesRead += src.Slice(bytesRead).Read(out ArgCount);
 
       if (bytesRead != Size)
-        throw null;
+        throw new BinLogSerializationException($"Failed to deserialize {nameof(EntryHeader)}");
     }
 
     public int SizeOf() => Size;
@@ -39,6 +39,9 @@ namespace BinLog.Internal {
       bytesWritten += dst.Slice(bytesWritten).Write(MessageId);
       bytesWritten += dst.Slice(bytesWritten).Write(LogLevel);
       bytesWritten += dst.Slice(bytesWritten).Write(ArgCount);
+
+      if (bytesWritten != Size)
+        throw new BinLogSerializationException($"Failed to serialize {nameof(EntryHeader)}");
 
       return bytesWritten;
     }

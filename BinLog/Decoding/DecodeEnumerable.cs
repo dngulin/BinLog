@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using BinLog.Exceptions;
 using BinLog.Internal;
 
 namespace BinLog.Decoding {
@@ -38,7 +39,7 @@ namespace BinLog.Decoding {
       _decoders = decoders;
 
       if (!_stream.CanRead)
-        throw null;
+        throw new BinLogException("Stream doesn't support reading");
     }
 
     public bool MoveNext() => ReadEntry(_stream, out _current);
@@ -57,13 +58,13 @@ namespace BinLog.Decoding {
         return false;
 
       if (bytesRead != EntryHeader.Size)
-        throw null;
+        throw new BinLogDecodingException("Invalid decoding stream length");
 
       var header = new EntryHeader(new ReadOnlySpan<byte>(_buffer, 0, EntryHeader.Size));
       entry.LogLevel = (LogLevel) header.LogLevel;
 
       if (!_decoders.TryGetValue(header.ChannelId, out var decoder))
-        throw null;
+        throw new BinLogDecodingException($"Unknown channel id {header.ChannelId}");
 
       entry.Channel = decoder.ChannelName;
 
@@ -72,7 +73,7 @@ namespace BinLog.Decoding {
         bytesRead += stream.Read(_buffer, 0, remains);
 
         if (bytesRead != header.EntryLength)
-          throw null;
+          throw new BinLogDecodingException("Invalid decoding stream length");
 
         DecodeArguments(header.ArgCount, new ReadOnlySpan<byte>(_buffer, 0, remains), decoder, _currentArgs);
       }
@@ -105,7 +106,7 @@ namespace BinLog.Decoding {
         case 4:
           return string.Format(message, args[0], args[1], args[2], args[3]);
         default:
-          throw null;
+          throw new BinLogDecodingException($"Too many arguments in log entry: {args.Count}");
       }
     }
   }
