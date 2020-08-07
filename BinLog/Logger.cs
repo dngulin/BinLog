@@ -16,11 +16,11 @@ namespace BinLog {
     private readonly LogTracer _tracer;
     private readonly string _name;
 
-    protected unsafe Logger(TChannelEnum channelId, Stream stream, byte[] buffer, LogTracer tracer = null) {
-      if (sizeof(TChannelEnum) != sizeof(ushort))
+    protected Logger(TChannelEnum channelId, Stream stream, byte[] buffer, LogTracer tracer = null) {
+      if (!LogEnum.CheckSizeOf<TChannelEnum>())
         throw new BinLogException($"Size of {nameof(TChannelEnum)} should be {sizeof(ushort)}");
 
-      if (sizeof(TMessageEnum) != sizeof(ushort))
+      if (!LogEnum.CheckSizeOf<TMessageEnum>())
         throw new BinLogException($"Size of {nameof(TMessageEnum)} should be {sizeof(ushort)}");
 
       if (!_stream.CanWrite)
@@ -32,14 +32,14 @@ namespace BinLog {
       _tracer = tracer;
       _name = channelId.ToString();
 
-      _channelId = *(ushort*) &channelId;
+      _channelId = LogEnum.ToUInt16(channelId);
     }
 
     public void Log(LogLevel level, TMessageEnum msgId) {
       _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId));
 
       var span = new Span<byte>(_buffer);
-      var header = new EntryHeader(EntryHeader.Size, _channelId, MsgIdToUInt16(msgId), level, 0);
+      var header = new EntryHeader(EntryHeader.Size, _channelId, LogEnum.ToUInt16(msgId), level, 0);
       var bytesWritten = header.WriteTo(span);
 
       if (bytesWritten != EntryHeader.Size)
@@ -54,7 +54,7 @@ namespace BinLog {
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf();
-      var header = new EntryHeader((ushort) length, _channelId, MsgIdToUInt16(msgId), level, 1);
+      var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 1);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
@@ -73,7 +73,7 @@ namespace BinLog {
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf();
-      var header = new EntryHeader((ushort) length, _channelId, MsgIdToUInt16(msgId), level, 2);
+      var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 2);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
@@ -94,7 +94,7 @@ namespace BinLog {
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf() + arg3.SizeOf();
-      var header = new EntryHeader((ushort) length, _channelId, MsgIdToUInt16(msgId), level, 3);
+      var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 3);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
@@ -117,7 +117,7 @@ namespace BinLog {
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf() + arg3.SizeOf() + arg4.SizeOf();
-      var header = new EntryHeader((ushort) length, _channelId, MsgIdToUInt16(msgId), level, 4);
+      var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 4);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
@@ -130,7 +130,5 @@ namespace BinLog {
 
       _stream.Write(_buffer, 0, bytesWritten);
     }
-
-    private static unsafe ushort MsgIdToUInt16(TMessageEnum value) => *(ushort*) &value;
   }
 }

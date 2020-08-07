@@ -1,27 +1,24 @@
 using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using BinLog.Exceptions;
 using BinLog.Internal;
 
 namespace BinLog.Decoding {
-  public unsafe class ChannelDecoder<TChannelEnum, TMessageEnum> : IChannelDecoder
+  public class ChannelDecoder<TChannelEnum, TMessageEnum> : IChannelDecoder
     where TChannelEnum : unmanaged
     where TMessageEnum : unmanaged {
 
     private readonly ArgumentDecoder _argDecoder;
 
     public ChannelDecoder(TChannelEnum channel, ArgumentDecoder argDecoder) {
-      if (sizeof(TChannelEnum) != sizeof(ushort))
+      if (!LogEnum.CheckSizeOf<TChannelEnum>())
         throw new BinLogException($"Size of {nameof(TChannelEnum)} should be {sizeof(ushort)}");
 
-      if (sizeof(TMessageEnum) != sizeof(ushort))
+      if (!LogEnum.CheckSizeOf<TMessageEnum>())
         throw new BinLogException($"Size of {nameof(TMessageEnum)} should be {sizeof(ushort)}");
 
       _argDecoder = argDecoder;
 
-      ChannelId = *(ushort*) &channel;
+      ChannelId = LogEnum.ToUInt16(channel);
       ChannelName = channel.ToString();
     }
 
