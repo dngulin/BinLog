@@ -25,8 +25,8 @@ namespace BinLog.Decoding {
     public ushort ChannelId { get; }
     public string ChannelName { get; }
 
-    public int DecodeArgument(ReadOnlySpan<byte> span, out object result) {
-      return _argDecoder.Decode(ChannelId, span, out result);
+    public int DecodeArgument(ReadOnlySpan<byte> source, out object result) {
+      return _argDecoder.Decode(ChannelId, source, out result);
     }
 
     public string DecodeMessage(ushort msgId) => LogEnum.GetMsg<TMessageEnum>(msgId);
