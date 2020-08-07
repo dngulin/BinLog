@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using BinLog.Exceptions;
+using BinLog.Internal;
 
 namespace BinLog.Decoding {
   public unsafe class ChannelDecoder<TChannelEnum, TMessageEnum> : IChannelDecoder
@@ -31,13 +32,6 @@ namespace BinLog.Decoding {
       return _argDecoder.Decode(ChannelId, span, out result);
     }
 
-    public string DecodeMessage(ushort msgId) {
-      var value = *(TMessageEnum*) &msgId;
-      return typeof(TMessageEnum)
-        .GetMember(value.ToString())
-        .FirstOrDefault()?
-        .GetCustomAttribute<DescriptionAttribute>()?
-        .Description ?? value + " {0} {1} {2} {3}";
-    }
+    public string DecodeMessage(ushort msgId) => LogEnum.GetMsg<TMessageEnum>(msgId);
   }
 }

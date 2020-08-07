@@ -8,13 +8,15 @@ namespace BinLog {
   public abstract class Logger<TChannelEnum, TMessageEnum>
     where TChannelEnum : unmanaged
     where TMessageEnum : unmanaged {
-
     private readonly ushort _channelId;
 
     private readonly Stream _stream;
     private readonly byte[] _buffer;
 
-    protected unsafe Logger(TChannelEnum channel, Stream stream, byte[] buffer) {
+    private readonly LogTracer _tracer;
+    private readonly string _name;
+
+    protected unsafe Logger(TChannelEnum channelId, Stream stream, byte[] buffer, LogTracer tracer = null) {
       if (sizeof(TChannelEnum) != sizeof(ushort))
         throw new BinLogException($"Size of {nameof(TChannelEnum)} should be {sizeof(ushort)}");
 
@@ -27,10 +29,15 @@ namespace BinLog {
       _stream = stream;
       _buffer = buffer;
 
-      _channelId = *(ushort*) &channel;
+      _tracer = tracer;
+      _name = channelId.ToString();
+
+      _channelId = *(ushort*) &channelId;
     }
 
     public void Log(LogLevel level, TMessageEnum msgId) {
+      _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId));
+
       var span = new Span<byte>(_buffer);
       var header = new EntryHeader(EntryHeader.Size, _channelId, MsgIdToUInt16(msgId), level, 0);
       var bytesWritten = header.WriteTo(span);
@@ -42,6 +49,8 @@ namespace BinLog {
     }
 
     public void Log<T1>(LogLevel level, TMessageEnum msgId, T1 arg1) where T1 : ILoggableValue {
+      _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap());
+
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf();
@@ -59,6 +68,8 @@ namespace BinLog {
     public void Log<T1, T2>(LogLevel level, TMessageEnum msgId, T1 arg1, T2 arg2)
       where T1 : ILoggableValue
       where T2 : ILoggableValue {
+      _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap(), arg2.Unwrap());
+
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf();
@@ -78,6 +89,8 @@ namespace BinLog {
       where T1 : ILoggableValue
       where T2 : ILoggableValue
       where T3 : ILoggableValue {
+      _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap(), arg2.Unwrap(), arg3.Unwrap());
+
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf() + arg3.SizeOf();
@@ -99,6 +112,8 @@ namespace BinLog {
       where T2 : ILoggableValue
       where T3 : ILoggableValue
       where T4 : ILoggableValue {
+      _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap(), arg2.Unwrap(), arg3.Unwrap(), arg4.Unwrap());
+
       var span = new Span<byte>(_buffer);
 
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf() + arg3.SizeOf() + arg4.SizeOf();
