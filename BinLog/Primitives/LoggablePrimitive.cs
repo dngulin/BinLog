@@ -3,7 +3,7 @@ using BinLog.Exceptions;
 using BinLog.Serialization;
 
 namespace BinLog.Primitives {
-  public readonly unsafe struct LoggablePrimitive<T> : ILoggableValue where T : unmanaged {
+  public readonly struct LoggablePrimitive<T> : ILoggableValue where T : unmanaged {
     public readonly T Value;
 
     public LoggablePrimitive(T value) {
@@ -12,7 +12,7 @@ namespace BinLog.Primitives {
 
     public object Unwrap() => Value;
 
-    public int SizeOf() => sizeof(T);
+    public unsafe int SizeOf() => sizeof(T);
 
     public int WriteTo(Span<byte> dst) {
       int bytesWritten;
