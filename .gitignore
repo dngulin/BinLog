@@ -3,3 +3,6 @@
 
 BinLog/bin
 BinLog/obj
+
+BinLog.Tests/bin
+BinLog.Tests/obj

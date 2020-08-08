@@ -10,7 +10,7 @@ namespace BinLog.Serialization {
     }
 
     public static int Read(this ReadOnlySpan<byte> span, out short value) {
-      value = BinaryPrimitives.ReadInt16BigEndian(span);
+      value = BinaryPrimitives.ReadInt16LittleEndian(span);
       return sizeof(short);
     }
 
@@ -41,13 +41,13 @@ namespace BinLog.Serialization {
 
     public static unsafe int Read(this ReadOnlySpan<byte> span, out float value) {
       var len = span.Read(out uint binary);
-      value = *(float*) binary;
+      value = *(float*) &binary;
       return len;
     }
 
     public static unsafe int Read(this ReadOnlySpan<byte> span, out double value) {
       var len = span.Read(out ulong binary);
-      value = *(double*) binary;
+      value = *(double*) &binary;
       return len;
     }
 
