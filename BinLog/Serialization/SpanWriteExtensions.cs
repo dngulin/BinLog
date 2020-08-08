@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Binary;
 using System.Text;
+using BinLog.Exceptions;
 
 namespace BinLog.Serialization {
   public static class SpanWriteExtensions {
@@ -52,13 +53,20 @@ namespace BinLog.Serialization {
     }
 
     public static int Write(this Span<byte> span, string value) {
+      if (value == null)
+        throw new BinLogSerializationException("Null-string serialization is not supported");
+
       var strSpan = span.Slice(sizeof(ushort));
-      var strSize = GetUtf8Bytes(value.AsSpan(), strSpan);
+      var strSize = WriteUtf8Bytes(value, strSpan);
       BinaryPrimitives.WriteUInt16LittleEndian(span, (ushort)strSize);
       return strSize + sizeof(ushort);
     }
 
-    private static unsafe int GetUtf8Bytes(ReadOnlySpan<char> chars, Span<byte> bytes) {
+    private static unsafe int WriteUtf8Bytes(string value, Span<byte> bytes) {
+      if (string.IsNullOrEmpty(value))
+        return 0;
+
+      var chars = value.AsSpan();
       fixed (char* charsPtr = &chars.GetPinnableReference())
       fixed (byte* bytesPtr = &bytes.GetPinnableReference())
         return Encoding.UTF8.GetBytes(charsPtr, chars.Length, bytesPtr, bytes.Length);

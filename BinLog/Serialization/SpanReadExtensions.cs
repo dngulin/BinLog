@@ -64,6 +64,9 @@ namespace BinLog.Serialization {
     }
 
     private static unsafe string ReadUtf8Bytes(ReadOnlySpan<byte> span) {
+      if (span.Length == 0)
+        return string.Empty;
+
       fixed (byte* bytesPtr = &span.GetPinnableReference())
         return Encoding.UTF8.GetString(bytesPtr, span.Length);
     }
