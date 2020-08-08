@@ -20,8 +20,11 @@ namespace BinLog.Tests {
     }
 
     [Theory]
-    [InlineData(0x0F)]
-    [InlineData(0xB0)]
+    [InlineData(byte.MaxValue)]
+    [InlineData(byte.MinValue)]
+    [InlineData(byte.MaxValue / 2)]
+    [InlineData(byte.MaxValue / 3)]
+    [InlineData(byte.MaxValue / 17)]
     public void ByteSerializationTest(byte inValue) {
       var wLen = BufferWriteable.Write(inValue);
       var rLen = BufferReadable.Read(out byte outValue);
