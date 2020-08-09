@@ -5,6 +5,6 @@ namespace BinLog.Decoding {
     public string Channel;
     public string Message;
     public LogLevel LogLevel;
-    public DateTime UtcDateTime;
+    public DateTimeOffset DateTimeUtc;
   }
 }

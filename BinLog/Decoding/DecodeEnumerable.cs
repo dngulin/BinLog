@@ -62,7 +62,7 @@ namespace BinLog.Decoding {
 
       var header = new EntryHeader(new ReadOnlySpan<byte>(_buffer, 0, EntryHeader.Size));
       entry.LogLevel = (LogLevel) header.LogLevel;
-      entry.UtcDateTime = header.UtcDateTime;
+      entry.DateTimeUtc = header.DateTimeUtc;
 
       if (!_decoders.TryGetValue(header.ChannelId, out var decoder))
         throw new BinLogDecodingException($"Unknown channel id {header.ChannelId}");

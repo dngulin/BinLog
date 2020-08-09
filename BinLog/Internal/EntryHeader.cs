@@ -13,7 +13,7 @@ namespace BinLog.Internal {
 
     public const ushort Size = sizeof(ushort) * 3 + sizeof(byte) * 2 + sizeof(uint);
 
-    public DateTime UtcDateTime => DateTimeOffset.FromUnixTimeSeconds(_timeStamp).UtcDateTime;
+    public DateTimeOffset DateTimeUtc => DateTimeOffset.FromUnixTimeSeconds(_timeStamp);
 
     public EntryHeader(ushort entryLength, ushort channelId, ushort messageId, LogLevel logLevel, byte argCount) {
       EntryLength = entryLength;
@@ -21,7 +21,7 @@ namespace BinLog.Internal {
       MessageId = messageId;
       LogLevel = (byte)logLevel;
       ArgCount = argCount;
-      _timeStamp = unchecked((uint)((DateTimeOffset) DateTime.UtcNow).ToUnixTimeSeconds());
+      _timeStamp = unchecked((uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds());
     }
 
     public EntryHeader(ReadOnlySpan<byte> src) {
