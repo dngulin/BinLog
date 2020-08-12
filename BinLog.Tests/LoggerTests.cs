@@ -54,7 +54,7 @@ namespace BinLog.Tests {
     }
 
     [Fact]
-    public void PrimitivesLoggingTest() {
+    public void ArgumentLoggingTest() {
       var args = new object[] {
         true,
         byte.MaxValue,
