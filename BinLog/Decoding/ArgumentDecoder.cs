@@ -5,17 +5,14 @@ using BinLog.Serialization;
 
 namespace BinLog.Decoding {
   public class ArgumentDecoder {
-    public int Decode(ushort channelId, ReadOnlySpan<byte> source, out object result) {
+    public int Decode(ReadOnlySpan<byte> source, out object result) {
       var typeLength = source.Read(out ushort typeId);
-      var dataLength =
-        DecodeImpl(typeId, source.Slice(typeLength), out result)
-        ?? throw new BinLogDecodingException($"Failed to decode argument of type {typeId} in channel {channelId}");
-
+      var dataLength = DecodeImpl(typeId, source.Slice(typeLength), out result);
       return typeLength + dataLength;
     }
 
-    protected virtual int? DecodeImpl(ushort type, ReadOnlySpan<byte> source, out object result) {
-      switch ((PrimitiveTypeId) type) {
+    protected virtual int DecodeImpl(ushort typeId, ReadOnlySpan<byte> source, out object result) {
+      switch ((PrimitiveTypeId) typeId) {
         case PrimitiveTypeId.Bool: {
           return WrapAndCast(source.Read(out bool value), value, out result);
         }
@@ -50,8 +47,7 @@ namespace BinLog.Decoding {
           return WrapAndCast(source.Read(out string value), value, out result);
         }
         default:
-          result = null;
-          return null;
+          throw new BinLogDecodingException($"Failed to decode argument of type {typeId}");
       }
     }
 

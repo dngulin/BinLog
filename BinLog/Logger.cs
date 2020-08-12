@@ -23,11 +23,11 @@ namespace BinLog {
       if (!LogEnum.CheckSizeOf<TMessageEnum>())
         throw new BinLogException($"Size of {nameof(TMessageEnum)} should be {sizeof(ushort)}");
 
-      if (!_stream.CanWrite)
-        throw new BinLogException("Stream doesn't support writing");
-
       _stream = stream;
       _buffer = buffer;
+
+      if (!_stream.CanWrite)
+        throw new BinLogException("Stream doesn't support writing");
 
       _tracer = tracer;
       _name = channelId.ToString();
@@ -59,7 +59,7 @@ namespace BinLog {
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
 
-      if (bytesWritten != EntryHeader.Size)
+      if (bytesWritten != length)
         throw new SerializationException("Failed to serialize log entry");
 
       _stream.Write(_buffer, 0, bytesWritten);
@@ -79,7 +79,7 @@ namespace BinLog {
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
       bytesWritten += arg2.WriteTo(span.Slice(bytesWritten));
 
-      if (bytesWritten != EntryHeader.Size)
+      if (bytesWritten != length)
         throw new SerializationException("Failed to serialize log entry");
 
       _stream.Write(_buffer, 0, bytesWritten);
@@ -101,7 +101,7 @@ namespace BinLog {
       bytesWritten += arg2.WriteTo(span.Slice(bytesWritten));
       bytesWritten += arg3.WriteTo(span.Slice(bytesWritten));
 
-      if (bytesWritten != EntryHeader.Size)
+      if (bytesWritten != length)
         throw new SerializationException("Failed to serialize log entry");
 
       _stream.Write(_buffer, 0, bytesWritten);
@@ -125,7 +125,7 @@ namespace BinLog {
       bytesWritten += arg3.WriteTo(span.Slice(bytesWritten));
       bytesWritten += arg4.WriteTo(span.Slice(bytesWritten));
 
-      if (bytesWritten != EntryHeader.Size)
+      if (bytesWritten != length)
         throw new SerializationException("Failed to serialize log entry");
 
       _stream.Write(_buffer, 0, bytesWritten);

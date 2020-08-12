@@ -69,7 +69,7 @@ namespace BinLog.Decoding {
 
       entry.Channel = decoder.ChannelName;
 
-      if (header.EntryLength < bytesRead) {
+      if (bytesRead < header.EntryLength) {
         var remains = header.EntryLength - EntryHeader.Size;
         bytesRead += stream.Read(_buffer, 0, remains);
 
@@ -78,6 +78,9 @@ namespace BinLog.Decoding {
 
         DecodeArguments(header.ArgCount, new ReadOnlySpan<byte>(_buffer, 0, remains), decoder, _currentArgs);
       }
+
+      if (_currentArgs.Count != header.ArgCount)
+        throw new BinLogDecodingException("Failed to decode args");
 
       entry.Message = DecodeMessage(header.MessageId, decoder, _currentArgs);
       return true;

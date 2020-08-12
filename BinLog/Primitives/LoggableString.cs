@@ -10,10 +10,10 @@ namespace BinLog.Primitives {
 
     public object Unwrap() => Value;
 
-    public int SizeOf() => sizeof(ushort) + Encoding.UTF8.GetByteCount(Value ?? string.Empty);
+    public int SizeOf() => sizeof(ushort) * 2 + Encoding.UTF8.GetByteCount(Value ?? string.Empty);
 
     public int WriteTo(Span<byte> dst) {
-      var bytesWritten = dst.Write((byte) PrimitiveTypeId.String);
+      var bytesWritten = dst.Write((ushort) PrimitiveTypeId.String);
       return bytesWritten + dst.Slice(bytesWritten).Write(Value ?? string.Empty);
     }
   }

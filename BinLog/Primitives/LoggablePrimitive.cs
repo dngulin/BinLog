@@ -12,7 +12,7 @@ namespace BinLog.Primitives {
 
     public object Unwrap() => Value;
 
-    public unsafe int SizeOf() => sizeof(T);
+    public unsafe int SizeOf() => sizeof(ushort) + sizeof(T);
 
     public int WriteTo(Span<byte> dst) {
       int bytesWritten;
