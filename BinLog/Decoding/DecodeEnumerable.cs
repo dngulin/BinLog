@@ -70,13 +70,15 @@ namespace BinLog.Decoding {
       entry.Channel = decoder.ChannelName;
 
       if (bytesRead < header.EntryLength) {
-        var remains = header.EntryLength - EntryHeader.Size;
-        bytesRead += stream.Read(_buffer, 0, remains);
+        var payloadSize = header.EntryLength - EntryHeader.Size;
+        bytesRead += stream.Read(_buffer, 0, payloadSize);
 
         if (bytesRead != header.EntryLength)
           throw new BinLogDecodingException("Invalid decoding stream length");
 
-        DecodeArguments(header.ArgCount, new ReadOnlySpan<byte>(_buffer, 0, remains), decoder, _currentArgs);
+        var argsSize = DecodeArguments(header.ArgCount, _buffer.AsSpan(0, payloadSize), decoder, _currentArgs);
+        if (argsSize != payloadSize)
+          throw new BinLogDecodingException("Invalid entry length");
       }
 
       if (_currentArgs.Count != header.ArgCount)
@@ -86,13 +88,15 @@ namespace BinLog.Decoding {
       return true;
     }
 
-    private static void DecodeArguments(int count, ReadOnlySpan<byte> src, IChannelDecoder decoder, List<object> args) {
+    private static int DecodeArguments(int count, ReadOnlySpan<byte> src, IChannelDecoder decoder, List<object> args) {
       var bytesRead = 0;
 
       for (var i = 0; i < count; i++) {
         bytesRead += decoder.DecodeArgument(src.Slice(bytesRead), out var arg);
         args.Add(arg);
       }
+
+      return bytesRead;
     }
 
     private static string DecodeMessage(ushort msgId, IChannelDecoder decoder, List<object> args) {

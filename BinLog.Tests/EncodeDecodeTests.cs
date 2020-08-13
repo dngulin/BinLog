@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using BinLog.Decoding;
+using BinLog.Exceptions;
 using BinLog.Primitives;
 using BinLog.Tests.Impl;
 using BinLog.Tests.Impl.Decoding;
@@ -9,7 +10,7 @@ using BinLog.Tests.Impl.Loggers;
 using Xunit;
 
 namespace BinLog.Tests {
-  public class LoggerTests {
+  public class EncodeDecodeTests {
     private readonly MemoryStream _stream = new MemoryStream(1024);
     private readonly FooLogger _fooLogger;
     private readonly BarLogger _barLogger;
@@ -18,7 +19,7 @@ namespace BinLog.Tests {
     private readonly BarDecoder _barDecoder;
     private readonly LogDecoder _logDecoder;
 
-    public LoggerTests() {
+    public EncodeDecodeTests() {
       var buffer = new byte[128];
       _fooLogger = new FooLogger(_stream, buffer);
       _barLogger = new BarLogger(_stream, buffer);
@@ -51,6 +52,8 @@ namespace BinLog.Tests {
 
       Assert.True(entries[0].Message == _fooDecoder.DecodeMessage(FooMsgId.Foo));
       Assert.True(entries[1].Message == _barDecoder.DecodeMessage(BarMsgId.HelloWorld));
+
+      Assert.True(entries[0].DateTimeUtc <= entries[1].DateTimeUtc);
     }
 
     [Fact]
@@ -88,6 +91,45 @@ namespace BinLog.Tests {
       }
 
       Assert.True(index == args.Length);
+    }
+
+    [Fact]
+    public void MultipleArgLoggingTest() {
+      var arg = new[] {
+        new[] {new string('a', 1)},
+        new[] {new string('c', 2), new string('d', 3)},
+        new[] {new string('e', 4), new string('f', 5), new string('g', 6)},
+        new[] {new string('h', 7), new string('i', 8), new string('j', 9), new string('k', 10)},
+      };
+
+      var ids = new[] {
+        FooMsgId.Foo1,
+        FooMsgId.Foo2,
+        FooMsgId.Foo3,
+        FooMsgId.Foo4,
+      };
+      var msg = ids.Select(id => _fooDecoder.DecodeMessage(id)).ToArray();
+
+      const LogLevel lvl = LogLevel.Info;
+      _fooLogger.Log(lvl, ids[0], arg[0][0].ForLog());
+      _fooLogger.Log(lvl, ids[1], arg[1][0].ForLog(), arg[1][1].ForLog());
+      _fooLogger.Log(lvl, ids[2], arg[2][0].ForLog(), arg[2][1].ForLog(), arg[2][2].ForLog());
+      _fooLogger.Log(lvl, ids[3], arg[3][0].ForLog(), arg[3][1].ForLog(), arg[3][2].ForLog(), arg[3][3].ForLog());
+
+      _stream.Seek(0, SeekOrigin.Begin);
+      var res = _logDecoder.Decode(_stream).Select(e => e.Message).ToArray();
+
+      Assert.True(res[0] == string.Format(msg[0], arg[0][0]));
+      Assert.True(res[1] == string.Format(msg[1], arg[1][0], arg[1][1]));
+      Assert.True(res[2] == string.Format(msg[2], arg[2][0], arg[2][1], arg[2][2]));
+      Assert.True(res[3] == string.Format(msg[3], arg[3][0], arg[3][1], arg[3][2], arg[3][3]));
+    }
+
+    [Fact]
+    public void UnknownArgumentDecodingTest() {
+      _barLogger.Log(LogLevel.Error, BarMsgId.BarValueIs, new UnknownStructLoggable());
+      _stream.Seek(0, SeekOrigin.Begin);
+      Assert.Throws<BinLogDecodingException>(() => _logDecoder.Decode(_stream).First());
     }
 
     private static ILoggableValue BoxILoggable(object arg) {
