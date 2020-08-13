@@ -35,6 +35,16 @@ namespace BinLog.Tests {
     }
 
     [Fact]
+    public void BadChannelIdTest() {
+      _fooLogger.Log(LogLevel.Info, FooMsgId.Foo1, long.MaxValue.ForLog());
+
+      _data.AsSpan().Slice(2).Write((ushort)31); // ChannelId
+      _stream.Seek(0, SeekOrigin.Begin);
+
+      Assert.Throws<BinLogDecodingException>(() => _logDecoder.Decode(_stream).First());
+    }
+
+    [Fact]
     public void BadArgCountTest() {
       _fooLogger.Log(LogLevel.Info, FooMsgId.Foo2, 1.ForLog(), 2.ForLog());
 
