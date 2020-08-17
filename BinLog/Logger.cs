@@ -5,6 +5,18 @@ using BinLog.Exceptions;
 using BinLog.Internal;
 
 namespace BinLog {
+  /// <summary>
+  /// The base logger class. Create a subclass for each domain an application.
+  /// </summary>
+  /// <remarks>
+  /// Each logger should have unique numeric channel id encoded by enum value.
+  /// </remarks>
+  /// <remarks>
+  /// Create an unique message id enum for each logger type.
+  /// Use the <c>DescriptionAttribute</c> on message id values to set message's string representation.
+  /// </remarks>
+  /// <typeparam name="TChannelEnum">Channel id enum. Should be inherited from ushort.</typeparam>
+  /// <typeparam name="TMessageEnum">Message id enum. Should be inherited from ushort.</typeparam>
   public abstract class Logger<TChannelEnum, TMessageEnum>
     where TChannelEnum : unmanaged
     where TMessageEnum : unmanaged {
@@ -16,6 +28,16 @@ namespace BinLog {
     private readonly LogTracer _tracer;
     private readonly string _name;
 
+    /// <summary>
+    /// Channel logger constructor.
+    /// </summary>
+    /// <param name="channelId">Unique logger id</param>
+    /// <param name="stream">Logging stream. Should be writable.</param>
+    /// <param name="buffer">Serialization buffer. Can be shared between multiple loggers (non thread safe).</param>
+    /// <param name="tracer">Optional runtime message tracer. Useful in debug environment.</param>
+    /// <exception cref="BinLogException">
+    /// Thrown when size of <c>TChannelEnum</c> or <c>TMessageEnum</c> is invalid.
+    /// </exception>
     protected Logger(TChannelEnum channelId, Stream stream, byte[] buffer, LogTracer tracer = null) {
       if (!LogEnum.CheckSizeOf<TChannelEnum>())
         throw new BinLogException($"Size of {nameof(TChannelEnum)} should be {sizeof(ushort)}");
