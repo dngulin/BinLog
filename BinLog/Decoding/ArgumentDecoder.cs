@@ -4,6 +4,10 @@ using BinLog.Primitives;
 using BinLog.Serialization;
 
 namespace BinLog.Decoding {
+  /// <summary>
+  /// Base argument decoder. Create a subclass if you want to decode custom argument types.
+  /// </summary>
+  /// See <see cref="ILoggableValue"/> for details about custom type serialization.
   public class ArgumentDecoder {
     public int Decode(ReadOnlySpan<byte> source, out object result) {
       var typeLength = source.Read(out ushort typeId);

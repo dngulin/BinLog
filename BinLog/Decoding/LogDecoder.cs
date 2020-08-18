@@ -3,6 +3,9 @@ using System.IO;
 using System.Linq;
 
 namespace BinLog.Decoding {
+  /// <summary>
+  /// Top level binary log decoder class.
+  /// </summary>
   public class LogDecoder {
     private readonly byte[] _buffer;
     private readonly Dictionary<ushort, IChannelDecoder> _decoders;

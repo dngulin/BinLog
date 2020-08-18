@@ -1,6 +1,9 @@
 using System;
 
 namespace BinLog.Decoding {
+  /// <summary>
+  /// Non-generic channel decoding interface.
+  /// </summary>
   public interface IChannelDecoder {
     ushort ChannelId { get; }
     string ChannelName { get; }

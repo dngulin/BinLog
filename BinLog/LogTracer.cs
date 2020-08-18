@@ -1,4 +1,7 @@
 namespace BinLog {
+  /// <summary>
+  /// The base class for log tracer. Pass into the <c>Logger</c> constructor for realtime log handling.
+  /// </summary>
   public abstract class LogTracer {
     public void Trace(LogLevel level, string channel, string msg)
       => TraceImpl(level, channel, msg);
