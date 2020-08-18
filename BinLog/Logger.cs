@@ -34,7 +34,7 @@ namespace BinLog {
     /// <param name="channelId">Unique logger id</param>
     /// <param name="stream">Logging stream. Should be writable.</param>
     /// <param name="buffer">Serialization buffer. Can be shared between multiple loggers (non thread safe).</param>
-    /// <param name="tracer">Optional runtime message tracer. Useful in debug environment.</param>
+    /// <param name="tracer">Optional realtime message tracer. Useful in debug environment.</param>
     /// <exception cref="BinLogException">
     /// Thrown when size of <c>TChannelEnum</c> or <c>TMessageEnum</c> is invalid.
     /// </exception>
