@@ -24,7 +24,7 @@ namespace BinLog.Decoding {
 
   public class DecodeEnumerator : IEnumerator<LogEntry> {
     private readonly Stream _stream;
-    private readonly byte[] _buffer;
+    private byte[] _buffer;
     private readonly Dictionary<ushort, IChannelDecoder> _decoders;
 
     private readonly List<object> _currentArgs = new List<object>(4);
@@ -60,7 +60,10 @@ namespace BinLog.Decoding {
       if (bytesRead != EntryHeader.Size)
         throw new BinLogDecodingException("Invalid decoding stream length");
 
-      var header = new EntryHeader(new ReadOnlySpan<byte>(_buffer, 0, EntryHeader.Size));
+      var header = new EntryHeader(_buffer.AsSpan(0, EntryHeader.Size));
+      if (_buffer.Length < header.EntryLength)
+        _buffer = new byte[header.EntryLength];
+
       entry.LogLevel = (LogLevel) header.LogLevel;
       entry.DateTimeUtc = header.DateTimeUtc;
 

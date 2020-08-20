@@ -58,7 +58,7 @@ For example see
 - `TChannelEnum` and `TMessageEnum` should be inherited from `ushort`.
 - Currently the argument log argument count is limited by 4 (by API). Technically this value can be increased up to 256.   
 - Null string serialization/deserialization is not possible. The `LoggableString` struct uses empty string instead of `null`.
-- Serialization/deserialization buffer has fixed size. If log entry is too big, a `IndexOutOfRange` exception will be thrown.
+- Serialization/deserialization buffer has fixed size. If log entry is too big a new buffer will be allocated.
 
 ### Best practices
 
@@ -69,5 +69,4 @@ For example see
 
 ## TODO
 
-- Serialization/deserialization buffer reallocation (if a log entry is too big)
 - Multithread logging

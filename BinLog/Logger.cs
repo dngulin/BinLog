@@ -57,10 +57,14 @@ namespace BinLog {
       _channelId = LogEnum.ToUInt16(channelId);
     }
 
+    private Span<byte> GetSpan(int entryLength) {
+      return entryLength <= _buffer.Length ? _buffer.AsSpan() : new Span<byte>(new byte[entryLength]);
+    }
+
     public void Log(LogLevel level, TMessageEnum msgId) {
       _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId));
 
-      var span = new Span<byte>(_buffer);
+      var span = GetSpan(EntryHeader.Size);
       var header = new EntryHeader(EntryHeader.Size, _channelId, LogEnum.ToUInt16(msgId), level, 0);
       var bytesWritten = header.WriteTo(span);
 
@@ -73,10 +77,10 @@ namespace BinLog {
     public void Log<T1>(LogLevel level, TMessageEnum msgId, T1 arg1) where T1 : ILoggableValue {
       _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap());
 
-      var span = new Span<byte>(_buffer);
-
       var length = EntryHeader.Size + arg1.SizeOf();
       var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 1);
+
+      var span = GetSpan(length);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
@@ -92,10 +96,10 @@ namespace BinLog {
       where T2 : ILoggableValue {
       _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap(), arg2.Unwrap());
 
-      var span = new Span<byte>(_buffer);
-
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf();
       var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 2);
+
+      var span = GetSpan(length);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
@@ -113,10 +117,10 @@ namespace BinLog {
       where T3 : ILoggableValue {
       _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap(), arg2.Unwrap(), arg3.Unwrap());
 
-      var span = new Span<byte>(_buffer);
-
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf() + arg3.SizeOf();
       var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 3);
+
+      var span = GetSpan(length);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
@@ -136,10 +140,10 @@ namespace BinLog {
       where T4 : ILoggableValue {
       _tracer?.Trace(level, _name, LogEnum.GetMsg(msgId), arg1.Unwrap(), arg2.Unwrap(), arg3.Unwrap(), arg4.Unwrap());
 
-      var span = new Span<byte>(_buffer);
-
       var length = EntryHeader.Size + arg1.SizeOf() + arg2.SizeOf() + arg3.SizeOf() + arg4.SizeOf();
       var header = new EntryHeader((ushort) length, _channelId, LogEnum.ToUInt16(msgId), level, 4);
+
+      var span = GetSpan(length);
 
       var bytesWritten = header.WriteTo(span);
       bytesWritten += arg1.WriteTo(span.Slice(bytesWritten));
