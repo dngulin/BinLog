@@ -69,4 +69,5 @@ For example see
 
 ## TODO
 
+- Roslyn analyzers
 - Multithread logging
